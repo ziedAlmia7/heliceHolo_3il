@@ -29,6 +29,21 @@ def affichagePointsDeCouleur(nomFichier, pointsDeCouleurExtraits, diametreLed):
     outputImg.save(nomFichier)
 
 
+def arrayPickedColors(pickedColors):
+  cleanedPickedColors = []
+  lastTheta = 0
+  thetaIndex = 0
+  for pickedColor in pickedColors:
+    if pickedColor[0][0][0] != lastTheta:
+      thetaIndex += 1
+    lastTheta = pickedColor[0][0][0]
+    cleanedPickedColors.append(
+        (thetaIndex, pickedColor[0][0][1], pickedColor[1][0], pickedColor[1][1], pickedColor[1][2]))
+    cleanedPickedColors.sort(key=lambda x: (x[0], x[1]))
+
+  return cleanedPickedColors
+
+
 def extractionCouleurs(pointsDextraction, image):
     """Pick pixel colors on image
 
@@ -102,10 +117,10 @@ def pointsDextraction(diametreZoneDextraction, nbPointsParLigne, angleAvance, an
 
 
 # Configuration variables
-nbLedsHelice = 2*48
+nbLedsHelice = 2*29
 nomFichier = 'pepsi.png'
 nomFichierSortie = 'result_picking.png'
-angleAvance = 15
+angleAvance = 20
 zoomFactor = 100  # zoom factor in percent
 
 if __name__ == "__main__":
@@ -122,5 +137,35 @@ if __name__ == "__main__":
     pointsDextraction = pointsDextraction(
         baseImgSize, nbLedsHelice, angleAvance)
     pointsDeCouleur = extractionCouleurs(pointsDextraction, imageCentree)
-    print(pointsDeCouleur)
+
+    arrayPoints = arrayPickedColors(pointsDeCouleur)
+    # print(arrayPoints)
+
+    colorsForStrip = [[[0 for _ in range(3)]
+                       for _ in range(29)] for _ in range(9)]
+    colorsForStrip2 = [[[0 for _ in range(3)]
+                       for _ in range(29)] for _ in range(9)]
+
+    for i in range(len(arrayPoints)):
+        sectorIndex = arrayPoints[i][0]
+        rIndex = arrayPoints[i][1]
+
+        if rIndex >= 0:
+            colorsForStrip[sectorIndex][rIndex][0] = arrayPoints[i][2]
+            colorsForStrip[sectorIndex][rIndex][1] = arrayPoints[i][3]
+            colorsForStrip[sectorIndex][rIndex][2] = arrayPoints[i][4]
+        else:
+            rIndex = -rIndex
+            colorsForStrip2[sectorIndex][rIndex][0] = arrayPoints[i][2]
+            colorsForStrip2[sectorIndex][rIndex][1] = arrayPoints[i][3]
+            colorsForStrip2[sectorIndex][rIndex][2] = arrayPoints[i][4]
+
+    print(str(colorsForStrip).replace("[", "{").replace("]", "}"))
+
+    with open("./test_color_array.h", 'w') as outfile:
+        outfile.write("uint8_t colorsForStrip[9][29][3] =" + str(
+            colorsForStrip).replace("[", "{").replace("]", "}") + ";\n" + "uint8_t colorsForStrip2[9][29][3] =" + str(
+            colorsForStrip2).replace("[", "{").replace("]", "}") + ";\n"
+        )
+
     affichagePointsDeCouleur(nomFichierSortie, pointsDeCouleur, 10)
