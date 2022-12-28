@@ -128,6 +128,7 @@ def saveArrayPickedColorsInFile(nbSectors, nbLeds, pickedColors):
   for i in range(len(arrayPoints)):
       sectorIndex = arrayPoints[i][0]
       rIndex = arrayPoints[i][1]
+      print(sectorIndex)
 
       if rIndex >= 0:
           colorsForStrip[sectorIndex][rIndex][0] = arrayPoints[i][2]
@@ -142,8 +143,8 @@ def saveArrayPickedColorsInFile(nbSectors, nbLeds, pickedColors):
   print(str(colorsForStrip).replace("[", "{").replace("]", "}"))
 
   with open("./test_color_array.h", 'w') as outfile:
-      outfile.write("const uint8_t colorsForStrip[" + nbSectors + "][" + nbLeds + "][3] PROGMEM =" + str(
-          colorsForStrip).replace("[", "{").replace("]", "}") + ";\n" + " const uint8_t colorsForStrip2[" + nbSectors + "][" + nbLeds + "][3] PROGMEM =" + str(
+      outfile.write("const uint8_t colorsForStrip[" + str(nbSectors) + "][" + str(nbLeds) + "][3] PROGMEM =" + str(
+          colorsForStrip).replace("[", "{").replace("]", "}") + ";\n" + "const uint8_t colorsForStrip2[" + str(nbSectors) + "][" + str(nbLeds) + "][3] PROGMEM =" + str(
           colorsForStrip2).replace("[", "{").replace("]", "}") + ";\n"
       )
 

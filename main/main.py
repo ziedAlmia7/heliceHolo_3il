@@ -9,14 +9,12 @@ from flask import Flask, render_template, url_for, request, flash, redirect, sen
 from werkzeug.utils import secure_filename
 from time import sleep, time
 import RPi.GPIO as GPIO
-from buzzer import Buzzer
 from converter.converter import *
-import subprocess
 import signal
 import sys
 import os
 
-ABSOLUTE_PATH = os.path.dirname(os.path.abspath(__file__))+'/'
+ABSOLUTE_PATH = os.path.dirname(os.path.abspath(__file__))+ '/'
 
 load_dotenv()
 
@@ -25,8 +23,8 @@ displayerSubprocess = None
 
 UPLOAD_FOLDER = 'img_uploaded'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-RADIAL_RESOLUTION_BOUNDS = {'min': 1, 'max': 48}
-ANGULAR_RESOLUTION_BOUNDS = {'min': 1, 'max': 50}
+RADIAL_RESOLUTION_BOUNDS = {'min': 1, 'max': 36}
+ANGULAR_RESOLUTION_BOUNDS = {'min': 1, 'max': 36}
 
 RUN_ALLOWED = False
 
@@ -46,7 +44,7 @@ def isFilenameAllowed(filename):
 
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = ABSOLUTE_PATH + UPLOAD_FOLDER
 app.secret_key = os.environ.get("flask_secret")
 
 
@@ -125,7 +123,7 @@ def home():
         pickedColors = pickColors(pickingPoints, centeredImage)
 
         saveArrayPickedColorsInFile(
-            nbSectors, nbEllipsesPerDiametralLine/2, pickedColors)
+            nbSectors, int(nbEllipsesPerDiametralLine/2), pickedColors)
         renderPickedPointsPreview(outputFileName, pickedColors, 10)
 
         flash(

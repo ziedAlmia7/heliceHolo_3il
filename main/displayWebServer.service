@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/pi/TO52_helice_holographique/main/main.py
+ExecStart=/usr/bin/python3 /home/holo/Desktop/HeliceRepo/heliceHolo_3il-main/main/main.py
 
 [Install]
 WantedBy=multi-user.target
