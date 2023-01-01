@@ -143,7 +143,9 @@ def saveArrayPickedColorsInFile(nbSectors, nbLeds, pickedColors):
   print(str(colorsForStrip).replace("[", "{").replace("]", "}"))
 
   with open("./test_color_array.h", 'w') as outfile:
-      outfile.write("const uint8_t colorsForStrip[" + str(nbSectors) + "][" + str(nbLeds) + "][3] PROGMEM =" + str(
+      outfile.write("#define NUM_LEDS " + str(nbLeds) + "\n"
+                    + "#define NB_SECTORS_USED " + str(nbSectors) + "\n"
+                    + "const uint8_t colorsForStrip[" + str(nbSectors) + "][" + str(nbLeds) + "][3] PROGMEM =" + str(
           colorsForStrip).replace("[", "{").replace("]", "}") + ";\n" + "const uint8_t colorsForStrip2[" + str(nbSectors) + "][" + str(nbLeds) + "][3] PROGMEM =" + str(
           colorsForStrip2).replace("[", "{").replace("]", "}") + ";\n"
       )
