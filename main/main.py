@@ -13,8 +13,14 @@ from converter.converter import *
 import signal
 import sys
 import os
+import subprocess
 
 ABSOLUTE_PATH = os.path.dirname(os.path.abspath(__file__))+ '/'
+# Get the current working directory
+arduinoScriptPath = ABSOLUTE_PATH + ".." + \
+    "/fillStripWithImage.io/fillStripWithImage.io.ino"
+arduinoStopScriptPath = os.path.join(
+    ABSOLUTE_PATH, "..", "/fillStripWithImage.io/emptyStrip.io.ino")
 
 load_dotenv()
 
@@ -53,6 +59,43 @@ def download_file(filename):
     return send_from_directory('preview', filename, as_attachment=True)
 
 
+def runArduinoFillScript():
+    arduinoProg = "/home/holo/Desktop/HeliceRepo/arduino-1.8.19/arduino"
+
+    codeFile = open(arduinoScriptPath, 'r')
+    startLine = codeFile.readline()[3:].strip()
+    actionLine = codeFile.readline()[3:].strip()
+    boardLine = codeFile.readline()[3:].strip()
+    portLine = codeFile.readline()[3:].strip()
+    endLine = codeFile.readline()[3:].strip()
+    codeFile.close()
+
+    # ~ print arduinoScriptPath
+    # ~ print startLine
+    # ~ print actionLine
+    # ~ print boardLine
+    # ~ print portLine
+    # ~ print endLine
+
+    if (startLine != "python-build-start" or endLine != "python-build-end"):
+        print("Sorry, can't process file")
+        sys.exit()
+
+    arduinoCommand = arduinoProg + " --" + actionLine + " --board " + \
+        boardLine + " --port " + portLine + " " + arduinoScriptPath
+
+    print("\n\n -- Arduino Command --")
+    print(arduinoCommand)
+
+    print("-- Starting --\n")
+
+    presult = subprocess.call(arduinoCommand, shell=True)
+
+    if presult != 0:
+        print("\n Failed - result code = %s --" + str(presult))
+    else:
+        print("\n-- Success --")
+
 angular_res_input = None
 radial_res_input = None
 
@@ -61,14 +104,19 @@ radial_res_input = None
 def home():
   global RUN_ALLOWED, angular_res_input, radial_res_input
   if request.method == 'POST':
-    if RUN_ALLOWED:
-      if request.form.get('command') == 'run_prop':
-        # TODO : Run arduino script + motor
-        RUN_ALLOWED = True
-      elif request.form.get('command') == 'stop_prop':
-        # TODO : Stop arduino script + motor
-        RUN_ALLOWED = False
+    if request.form.get('command') == 'run_prop':
+      # TODO : Run arduino script + motor
+        process = subprocess.Popen(
+            ["/home/holo/Desktop/HeliceRepo/arduino-1.8.19/arduino", "--install-library", "FastLED:3.5.0"])
+        runArduinoFillScript()
+        #process = subprocess.Popen(["/home/holo/Desktop/HeliceRepo/arduino-1.8.19/arduino", "--upload", arduinoScriptPath])
+        return render_template('index.html', preview_url="preview/preview.png", RUN_ALLOWED=RUN_ALLOWED, startBtnDisabled=True, stopBtnDisabled=False)
+    elif request.form.get('command') == 'stop_prop':
+      # TODO : Stop arduino script + motor
+        process.Kill()
+        return render_template('index.html', preview_url="preview/preview.png", RUN_ALLOWED=RUN_ALLOWED, startBtnDisabled=False, stopBtnDisabled=True)
 
+        #process = subprocess.run(["arduino", "--upload", arduinoStopScriptPath])
     angular_res_input = int(request.form.get('angular_resolution'))
     radial_res_input = int(request.form.get('radial_resolution'))
     if not isinstance(angular_res_input, int):
@@ -104,7 +152,7 @@ def home():
         # Configuration variables
         nbEllipsesPerDiametralLine = 2*radial_res_input
         imageFileName = fullpath
-        outputFileName = 'static/preview.png'
+        outputFileName = ABSOLUTE_PATH + '/static/preview.png'
         nbSectors = angular_res_input  # number of displaying sectors
         angleStep = int(180/nbSectors)
         zoomFactor = 90  # zoom factor in percent
