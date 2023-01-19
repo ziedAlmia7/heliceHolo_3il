@@ -1,20 +1,23 @@
-/// @file    RGBSetDemo.ino
-/// @brief   Demonstrates how to create an LED group with CRGBArray
-/// @example RGBSetDemo.ino
+// python-build-start
+// upload
+// arduino:avr:uno
+// /dev/ttyACM0
+// python-build-end
 
 #include <FastLED.h>
 
 #include "test_color_array.h"
 
 
-#define NB_SECTORS_MAX 30
-#define NB_LEDS_PER_STRIP_MAX 35
-
 CRGBArray<NUM_LEDS> leds;
 CRGBArray<NUM_LEDS> leds2;
-int val;
+
+unsigned long lastSensorTime = 0; // Temps de la dernière interruption
+float speed = 0; // Vitesse actuelle
+bool swap = false;
 void setup() { 
   pinMode(10, INPUT); // Capteur de présence sur le pin 9  
+  Serial.begin(9600); // Initialiser la communication série pour afficher les résultats
 
   FastLED.addLeds<NEOPIXEL,3>(leds, NUM_LEDS); 
   FastLED.addLeds<NEOPIXEL,6>(leds2, NUM_LEDS); 
@@ -37,20 +40,29 @@ void FillStrip2WithDifferentColors( CRGBArray<NUM_LEDS> leds, uint8_t sector)
 }
 
 void loop(){
+  if(!digitalRead(10))  // Début de séquence d'affichage
+   {
+    unsigned long currentSensorTime = micros(); // Temps actuel
+    speed = 1000000.0 /(currentSensorTime - lastSensorTime) * 60;
+    Serial.print("Vitesse : ");
+    Serial.println(speed);
 
-  if(digitalRead(10)) { // Début de séquence d'affichage
-     FastLED.clear();  // clear all pixel data
-     FastLED.show();
-  } else {
+    lastSensorTime = currentSensorTime; // Mettre à jour le temps de la dernière interruption
     for (uint8_t sector = 0; sector < NB_SECTORS_USED; sector++)
     {
-        FillStrip1WithDifferentColors(leds, sector);
-        FillStrip2WithDifferentColors(leds2, sector);
+        if(swap) {
+            FillStrip1WithDifferentColors(leds2, sector);
+            FillStrip2WithDifferentColors(leds, sector);
+        } else {
+            FillStrip1WithDifferentColors(leds, sector);
+            FillStrip2WithDifferentColors(leds2, sector);
+        }
+        
         FastLED.show();
-        delay(1);
+        
     }
+    swap = !swap ;
   }
-
 
 //exit(0);
 }

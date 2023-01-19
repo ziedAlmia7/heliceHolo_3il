@@ -17,10 +17,8 @@ import subprocess
 
 ABSOLUTE_PATH = os.path.dirname(os.path.abspath(__file__))+ '/'
 # Get the current working directory
-arduinoScriptPath = ABSOLUTE_PATH + ".." + \
-    "/fillStripWithImage.io/fillStripWithImage.io.ino"
-arduinoStopScriptPath = os.path.join(
-    ABSOLUTE_PATH, "..", "/fillStripWithImage.io/emptyStrip.io.ino")
+arduinoScriptPath = ABSOLUTE_PATH + ".." + "/fillStripWithImage.io/fillStripWithImage.io.ino"
+arduinoStopScriptPath = os.path.join(ABSOLUTE_PATH, "..", "/fillStripWithImage.io/emptyStrip.io.ino")
 
 load_dotenv()
 
@@ -29,7 +27,7 @@ displayerSubprocess = None
 
 UPLOAD_FOLDER = 'img_uploaded'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-RADIAL_RESOLUTION_BOUNDS = {'min': 1, 'max': 36}
+RADIAL_RESOLUTION_BOUNDS = {'min': 1, 'max': 40}
 ANGULAR_RESOLUTION_BOUNDS = {'min': 1, 'max': 36}
 
 RUN_ALLOWED = False
@@ -70,34 +68,35 @@ def runArduinoFillScript():
     endLine = codeFile.readline()[3:].strip()
     codeFile.close()
 
-    # ~ print arduinoScriptPath
-    # ~ print startLine
-    # ~ print actionLine
-    # ~ print boardLine
-    # ~ print portLine
-    # ~ print endLine
+    #~ print arduinoScriptPath
+    #~ print startLine
+    #~ print actionLine
+    #~ print boardLine
+    #~ print portLine
+    #~ print endLine
 
     if (startLine != "python-build-start" or endLine != "python-build-end"):
         print("Sorry, can't process file")
         sys.exit()
 
-    arduinoCommand = arduinoProg + " --" + actionLine + " --board " + \
-        boardLine + " --port " + portLine + " " + arduinoScriptPath
+    arduinoCommand = arduinoProg + " --" + actionLine + " --board " + boardLine + " --port " + portLine + " " + arduinoScriptPath
 
-    print("\n\n -- Arduino Command --")
-    print(arduinoCommand)
+    print ("\n\n -- Arduino Command --")
+    print (arduinoCommand)
 
-    print("-- Starting --\n")
+    print ("-- Starting --\n")
 
     presult = subprocess.call(arduinoCommand, shell=True)
 
     if presult != 0:
-        print("\n Failed - result code = %s --" + str(presult))
+        print ("\n Failed - result code = %s --"  + str(presult))
     else:
-        print("\n-- Success --")
+        print ("\n-- Success --")
 
 angular_res_input = None
 radial_res_input = None
+
+#process = subprocess.Popen(["/home/holo/Desktop/HeliceRepo/arduino-1.8.19/arduino", "--install-library", "FastLED:3.5.0"])
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -105,16 +104,14 @@ def home():
   global RUN_ALLOWED, angular_res_input, radial_res_input
   if request.method == 'POST':
     if request.form.get('command') == 'run_prop':
-      # TODO : Run arduino script + motor
-        process = subprocess.Popen(
-            ["/home/holo/Desktop/HeliceRepo/arduino-1.8.19/arduino", "--install-library", "FastLED:3.5.0"])
+# TODO : Run arduino script + motor
         runArduinoFillScript()
         #process = subprocess.Popen(["/home/holo/Desktop/HeliceRepo/arduino-1.8.19/arduino", "--upload", arduinoScriptPath])
-        return render_template('index.html', preview_url="preview/preview.png", RUN_ALLOWED=RUN_ALLOWED, startBtnDisabled=True, stopBtnDisabled=False)
+        return render_template('index.html',preview_url="preview/preview.png", RUN_ALLOWED = RUN_ALLOWED, startBtnDisabled = True, stopBtnDisabled = False)
     elif request.form.get('command') == 'stop_prop':
-      # TODO : Stop arduino script + motor
+# TODO : Stop arduino script + motor
         process.Kill()
-        return render_template('index.html', preview_url="preview/preview.png", RUN_ALLOWED=RUN_ALLOWED, startBtnDisabled=False, stopBtnDisabled=True)
+        return render_template('index.html',preview_url="preview/preview.png", RUN_ALLOWED = RUN_ALLOWED, startBtnDisabled = False, stopBtnDisabled = True)
 
         #process = subprocess.run(["arduino", "--upload", arduinoStopScriptPath])
     angular_res_input = int(request.form.get('angular_resolution'))
